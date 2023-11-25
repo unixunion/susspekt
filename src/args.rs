@@ -4,7 +4,7 @@ use ipnetwork::Ipv4Network;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct AppArgs {
-    #[arg(long, help = "network device for pcap listening, e.g: eth0")]
+    #[arg(long, default_value="eth0", help = "network device for pcap listening, e.g: eth0")]
     pub network: Option<String>,
 
     // log file pattern

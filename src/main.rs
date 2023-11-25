@@ -36,11 +36,10 @@ fn main() {
     );
 
 
-    let mut monitor = Monitor::new( whitelist, args );
+    let mut monitor = Monitor::new( whitelist, args.clone() );
 
     info!("susspekt-wire-sniffer");
-
-    let mut ja3 = Ja3::new("wlo1:")
+    let mut ja3 = Ja3::new(args.network.unwrap())
         .process_live()
         .unwrap();
 
