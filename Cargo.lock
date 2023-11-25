@@ -371,7 +371,7 @@ dependencies = [
 [[package]]
 name = "ja3"
 version = "0.5.0"
-source = "git+https://github.com/unixunion/susspekt.git#4fdaa075b8f3725cf8f16679eaa963ef787e72bb"
+source = "git+https://github.com/unixunion/ja3-rs.git#5443da80c21353b9ad9a9137ac763fdceb50d4eb"
 dependencies = [
  "failure",
  "lazy_static",
