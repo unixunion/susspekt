@@ -243,7 +243,7 @@ mod tests {
         let whitelist = Whitelist::new(nws, ja3s);
 
         let md = Monitor::new(whitelist, args);
-        assert_eq!(md.args.threshold, 30000);
+        assert_eq!(md.args.threshold, 1000);
         assert_eq!(md.args.window, Duration::from_secs(60).as_secs());
         //... other assertions for initial state
     }
