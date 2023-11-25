@@ -1,0 +1,17 @@
+[package]
+name = "sniffer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#ja3 = { version = "0.5.1", features = ["live-capture", "pcap"] }
+ja3 = {path = "/home/kegan/RustroverProjects/ja3-rs",  features = ["live-capture", "pcap"]}
+env_logger = "0.10.1"
+log = "0.4.20"
+time = "0.3.30"
+chrono = "0.4.31"
+clap = { version = "4.4.8", features = ["derive"] }
+ipnetwork = "0.20.0"
+md5 = "0.7.0"
