@@ -1,7 +1,6 @@
 
 use std::collections::HashMap;
-use std::process::Command;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 use crate::args::AppArgs;
 use crate::bucket::Bucket;
@@ -11,66 +10,59 @@ pub(crate) struct Monitor {
     args: AppArgs,
     buckets: HashMap<String, Bucket>, // HashMap to store Buckets against unique keys (like JA3 hashes).
     _last_check: SystemTime, // Last time the data was checked.
-    whitelist: Whitelist, // Whitelist object to filter out allowed items.
     last_cleanup: SystemTime, // Last time the buckets were cleaned up.
     ja3_last_alerts: HashMap<String, SystemTime>, // Tracks the last alert time for each JA3 hash.
     bucket_window: usize, // the window to bucket by, just a conversion of type for the window for speed
 }
 
 impl Monitor {
-    pub fn new(whitelist: Whitelist, args: AppArgs) -> Self {
+    pub fn new(args: AppArgs) -> Self {
         let bucket_window = args.window as usize;
         Monitor {
             args: args,
             buckets: HashMap::new(), // Initialize buckets as an empty HashMap.
             _last_check: SystemTime::now(), // Initialize last check to the current time.
-            whitelist, // Initialize the whitelist.
             last_cleanup: SystemTime::now(), // Initialize last cleanup to the current time.
             ja3_last_alerts: HashMap::new(), // Initialize ja3_last_alerts as an empty HashMap.
             bucket_window: bucket_window, // bucket window is conversion
         }
     }
 
-    pub fn process_key(&mut self, ja3: &str, current_ts: SystemTime) {
-
-        if self.should_skip_alert(ja3, current_ts) {
-            log::warn!("Suppressing re-alert for ja3: {}", ja3);
-            return;
-        }
-
+    // process a key, and return if its in violation or not
+    pub fn process_key(&mut self, ja3: &str, current_ts: SystemTime) -> bool {
+        // if self.should_skip_alert(ja3, current_ts) {
+        //     log::warn!("Suppressing re-alert for ja3: {}", ja3);
+        //     return false;
+        // }
+    
         let should_alert = self.update_or_insert_bucket(ja3, current_ts);
-
+    
         if should_alert {
             log::info!("Threshold violation, threshold: {} exceeded within {:?} seconds, for ja3: {}", self.args.threshold, self.args.window, ja3);
             self.log_bucket(ja3);
-            match self.post_suspect_traffic(ja3) {
-                Ok(_) => {
-                    self.ja3_last_alerts.insert(ja3.to_owned(), current_ts);
-                    log::info!("Block rule posted successfully for ja3 {:?}", ja3);
-                }
-                Err(e) => log::error!("Failed to post alert for key {:?}: {}", ja3, e),
-            }
-        }
-
-        self.periodic_cleanup(current_ts);
-    }
-
-    fn should_skip_alert(&self, ja3: &str, current_ts: SystemTime) -> bool {
-        if let Some(last_alert_ts) = self.ja3_last_alerts.get(ja3) {
-            // Calculate the duration since the last alert
-            if let Ok(duration_since_last_alert) = current_ts.duration_since(*last_alert_ts) {
-                log::debug!("Last alerts for ja3: {}, was at: {:?}, elapsed time since then: {:?}", ja3, last_alert_ts, duration_since_last_alert);
-
-                // Check if the duration since the last alert is less than the window
-                duration_since_last_alert.as_secs() < self.args.window
-            } else {
-                // In case current_ts is before last_alert_ts, which is unlikely but should be handled
-                false
-            }
         } else {
-            false
+            self.periodic_cleanup(current_ts);
         }
+
+        should_alert
     }
+
+    // fn should_skip_alert(&self, ja3: &str, current_ts: SystemTime) -> bool {
+    //     if let Some(last_alert_ts) = self.ja3_last_alerts.get(ja3) {
+    //         // Calculate the duration since the last alert
+    //         if let Ok(duration_since_last_alert) = current_ts.duration_since(*last_alert_ts) {
+    //             log::debug!("Last alerts for ja3: {}, was at: {:?}, elapsed time since then: {:?}", ja3, last_alert_ts, duration_since_last_alert);
+
+    //             // Check if the duration since the last alert is less than the window
+    //             duration_since_last_alert.as_secs() < self.args.window
+    //         } else {
+    //             // In case current_ts is before last_alert_ts, which is unlikely but should be handled
+    //             false
+    //         }
+    //     } else {
+    //         false
+    //     }
+    // }
 
 
     fn update_or_insert_bucket(&mut self, key: &str, current_ts: SystemTime) -> bool {
@@ -130,48 +122,6 @@ impl Monitor {
         self.log_current_state();
     }
 
-    // Sends a blocking request to the ELB for suspect traffic. This uses curl because tokio is a pain to implement in.
-    fn post_suspect_traffic(&self, md5_semi_ja3: &str) -> Result<(), String> {
-        if let Some(true) = self.args.elb_fake_mode {
-            log::info!("Faking elb post for key: {}", md5_semi_ja3);
-            return Ok(());
-        }
-
-        let ja3s = md5_semi_ja3; // Extract JA3 hash from the key.
-        let rule_payload = format!(r#"{{ "{}": {} }}"#, ja3s, self.args.block_seconds);
-
-        log::info!("Posting block rule payload: {}", rule_payload);
-
-        // Execute a curl command to post the blocking request.
-        let output = Command::new("curl")
-            .arg("-X")
-            .arg("POST")
-            .arg("-H")
-            .arg("Content-Type: application/json")
-            .arg("-d")
-            .arg(&rule_payload)
-            .arg(&self.args.elb_host)
-            .arg("-k")
-            .output();
-
-        match output {
-            Ok(output) => {
-                if !output.status.success() {
-                    let status_code = output.status.code().unwrap_or(-1);
-                    log::error!("Error posting to NGINX, status: {}, output: {:?}",
-                                status_code, String::from_utf8_lossy(&output.stderr));
-                    Err("bad stuff".to_string())
-                } else {
-                    log::info!("Response from NGINX: {:?}", String::from_utf8_lossy(&output.stdout));
-                    Ok(())
-                }
-            }
-            Err(e) => {
-                log::error!("Error making a POST request: {}", e);
-                Err(e.to_string())
-            }
-        }
-    }
 
     // Logs the current state of the buckets. this is for local dev, and the iterator need to be left commented out for performance!
     pub fn log_current_state(&self) {
@@ -242,7 +192,7 @@ mod tests {
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
 
-        let md = Monitor::new(whitelist, args);
+        let md = Monitor::new(args);
         assert_eq!(md.args.threshold, 1000);
         assert_eq!(md.args.window, Duration::from_secs(60).as_secs());
         //... other assertions for initial state
@@ -256,7 +206,7 @@ mod tests {
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
 
-        let mut md = Monitor::new(whitelist, args);
+        let mut md = Monitor::new(args);
         let current_ts = SystemTime::now();
         md.process_key("testkey", current_ts);
         assert!(md.buckets.contains_key("testkey"));
@@ -270,7 +220,7 @@ mod tests {
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
 
-        let mut md = Monitor::new(whitelist, args);
+        let mut md = Monitor::new(args);
         let current_ts = SystemTime::now();
         md.process_key("testkey", current_ts);
         // simulate some time passage
@@ -294,7 +244,7 @@ mod tests {
         let nws = Arc::new(args.parse_whitelist_networks());
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
-        let mut md = Monitor::new(whitelist, args);
+        let mut md = Monitor::new(args);
         let current_ts = SystemTime::now();
         md.process_key("oldkey", current_ts - Duration::from_secs(500));
         md.process_key("newkey", current_ts);

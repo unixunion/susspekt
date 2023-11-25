@@ -16,7 +16,7 @@ pub struct AppArgs {
     pub threshold: u16,
 
     /// Time window for the threshold (in seconds)
-    #[arg(short, long, default_value_t = 30, help = "Time window in seconds for calculating the threshold")]
+    #[arg(short, long, default_value_t = 60, help = "Time window in seconds for calculating the threshold")]
     pub window: u64,
 
     // /// Number of threads for processing
