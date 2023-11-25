@@ -3,8 +3,7 @@ use std::net::Ipv4Addr;
 use ipnetwork::Ipv4Network;
 
 /**
- * This is the whitelist implementations, although the ELB is already hosting a ton of whitelists, these whitelists are for the ddos_corroder
- * itself, to save processing on excluded IP's and JA3's.
+ * This is the whitelist implementations
  */
 
 #[derive(Clone)]
