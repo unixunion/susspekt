@@ -4,6 +4,10 @@ Sniffs TLS traffic on the network, and tracks JA3's making new connections.
 It aggregates based on source + ja3, and if thresholds are violated, posts the 
 suspect ja3 to a rest endpoint.
 
+# Building
+
+* cargo build
+
 # Running
 
 ```bash
