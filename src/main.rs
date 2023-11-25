@@ -20,7 +20,7 @@ mod rollingwindow;
 fn main() {
 
     // simple logger
-    env_logger::Builder::from_env(Env::default().default_filter_or("ja3=error,sniffer=info"))
+    env_logger::Builder::from_env(Env::default().default_filter_or("ja3=error,susspekt=info"))
         .format(|buf, record| {
             use std::io::Write;
             let ts = buf.timestamp_micros();

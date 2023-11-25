@@ -11,7 +11,7 @@ suspect ja3 to a rest endpoint.
 # Running
 
 ```
-sudo ./target/debug/sniffer --network wlo1 --threshold 1000 --window 60 
+sudo susspekt --network wlo1 --threshold 1000 --window 60 
 2023-11-25T15:27:53.599413Z: INFO - susspekt-wire-sniffer
 2023-11-25T15:27:57.511841Z: INFO - Source: 192.168.0.55, Destination: 151.101.84.143, JA3: e669667efb41c36f714c309243f41ca7-192.168.0.55, Packet Size: 624, Is Handshake: true
 2023-11-25T15:27:57.511923Z: INFO - Source: 192.168.0.55, Destination: 83.255.218.51, JA3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.55, Packet Size: 712, Is Handshake: true
