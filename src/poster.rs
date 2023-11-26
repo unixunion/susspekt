@@ -39,7 +39,11 @@ impl HttpPoster {
 
     // Async method to post data
     pub async fn post_data<T: Serialize>(&self, data: &T) -> Result<(), Error> {
-        log::info!("posting to: {}", &self.args.alert_url);
+        if self.args.dry_run.unwrap() {
+            log::info!("DryRun, not posting to {}", self.args.alert_url);
+            return Ok(())
+        }
+        log::info!("Posting alert to: {}", &self.args.alert_url);
         match self.client.post(&self.args.alert_url)
             .json(data)
             .send()
@@ -141,7 +145,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_alert_submission() {
-        let _ = env_logger::builder().is_test(true).try_init().expect("Unable to init logger");
+
         let mock_server = MockServer::start().await;
         
         let mut http_poster = HttpPoster::new(AppArgs {
@@ -150,7 +154,7 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 1,                                  // Example window value in seconds
             alert_url: mock_server.uri(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(false),                       // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
@@ -167,13 +171,11 @@ mod tests {
         http_poster.alert("test_key".to_string()).await.unwrap();
         sleep(Duration::from_millis(100)).await; // Wait for 100 milliseconds
         assert_eq!(mock_server.received_requests().await.unwrap().len(), 1);
-        log::info!("first one received");
 
         // Scenario 2: Resubmit the same alert
         http_poster.alert("test_key".to_string()).await.unwrap();
         sleep(Duration::from_millis(100)).await; // Wait for 100 milliseconds
         assert_eq!(mock_server.received_requests().await.unwrap().len(), 1);
-        log::info!("second one skipped");
 
         // Scenario 3: Wait and then submit the alert again
         sleep(Duration::from_secs(http_poster.args.window * 2)).await;
@@ -181,5 +183,35 @@ mod tests {
         sleep(Duration::from_millis(100)).await; // Wait for 100 milliseconds
         // The server should now have received a second request
         assert_eq!(mock_server.received_requests().await.unwrap().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_dryrun() {
+
+        let mock_server = MockServer::start().await;
+
+        let mut http_poster = HttpPoster::new(AppArgs {
+            interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
+            file: None,                            // No pcap file for testing
+            threshold: 1000,                            // Example threshold value
+            window: 1,                                  // Example window value in seconds
+            alert_url: mock_server.uri(),                // Mock ELB host
+            dry_run: Some(true),                 // Enable fake mode for testing
+            block_seconds: 86400,                       // Example block duration in seconds
+            whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
+            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+        });
+
+        Mock::given(method("POST"))
+            .and(path("/"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        // Scenario 1: Submit an alert
+        http_poster.alert("test_key".to_string()).await.unwrap();
+        sleep(Duration::from_millis(100)).await; // Wait for 100 milliseconds
+        assert_eq!(mock_server.received_requests().await.unwrap().len(), 0);
     }
 }

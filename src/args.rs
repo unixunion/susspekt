@@ -28,12 +28,12 @@ pub struct AppArgs {
     // #[arg(short, long, default_value_t = 2, help = "The number of threads to use for parallel processing")]
     // pub concurrency: usize,
 
-    /// ELB host for updating block list
+    /// alert host for posting the violations to
     #[arg(short, long, default_value = "http://localhost:8080/api/block/update", help = "The endpoint for updating the block list")]
     pub alert_url: String,
 
-    #[arg(long, help = "Pretend the ELB accepted the payload")]
-    pub alert_fake_mode: Option<bool>,
+    #[arg(short, long, help = "DryRun disables posting the alerts to the --alert-url")]
+    pub dry_run: Option<bool>,
 
     /// Duration for blocking suspicious traffic (in seconds)
     #[arg(short, long, default_value_t = 86400, help = "Alert duration field value in seconds for how long to block suspicious traffic")]

@@ -206,7 +206,7 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
@@ -232,7 +232,7 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
@@ -258,7 +258,7 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
@@ -294,7 +294,7 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
