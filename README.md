@@ -14,21 +14,21 @@ suspect `{ja3}-{remote_addr}` to a rest endpoint as a simple json object:
 ## Usage
 
 ```bash
-Usage: susspekt <--interface <INTERFACE>|--pcap-file <PCAP_FILE>|--threshold <THRESHOLD>|--window <WINDOW>|--alert-url <ALERT_URL>|--alert-fake-mode <ALERT_FAKE_MODE>|--block-seconds <BLOCK_SECONDS>|--whitelist-networks <WHITELIST_NETWORKS>|--whitelist-ja3s <WHITELIST_JA3S>|--log-create-buckets <LOG_CREATE_BUCKETS>>
+Usage: susspekt <--interface <INTERFACE>|--file <FILE>|--threshold <THRESHOLD>|--window <WINDOW>|--alert-url <ALERT_URL>|--dry-run <DRY_RUN>|--block-seconds <BLOCK_SECONDS>|--whitelist-networks <WHITELIST_NETWORKS>|--whitelist-ja3s <WHITELIST_JA3S>|--log-create-buckets <LOG_CREATE_BUCKETS>>
 
 Options:
-      --interface <INTERFACE>
-          network device for pcap listening, e.g: eth0
-  -p, --pcap-file <PCAP_FILE>
-          pcap dump for testing, not yet implemented
+  -i, --interface <INTERFACE>
+          Network device to sniff, e.g: eth0
+  -f, --file <FILE>
+          The pcap file to analyse for testing. NOTE: timing windows dont work with files
   -t, --threshold <THRESHOLD>
           Threshold number of occurrences of a ja3-remote_addr-uri in the window [default: 1000]
   -w, --window <WINDOW>
           Time window in seconds for calculating the threshold [default: 60]
   -a, --alert-url <ALERT_URL>
           The endpoint for updating the block list [default: http://localhost:8080/api/block/update]
-      --alert-fake-mode <ALERT_FAKE_MODE>
-          Pretend the ELB accepted the payload [possible values: true, false]
+  -d, --dry-run <DRY_RUN>
+          DryRun disables posting the alerts to the --alert-url [possible values: true, false]
   -b, --block-seconds <BLOCK_SECONDS>
           Alert duration field value in seconds for how long to block suspicious traffic [default: 86400]
       --whitelist-networks <WHITELIST_NETWORKS>
@@ -41,7 +41,6 @@ Options:
           Print help
   -V, --version
           Print version
-
 ```
 
 # Building

@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 use std::time::SystemTime;
+use time::{Duration, Instant};
 
 use crate::args::AppArgs;
 use crate::bucket::Bucket;
@@ -15,6 +16,8 @@ pub(crate) struct Monitor {
     last_cleanup: SystemTime, // Last time the buckets were cleaned up.
     ja3_last_alerts: HashMap<String, SystemTime>, // Tracks the last alert time for each JA3 hash.
     bucket_window: usize, // the window to bucket by, just a conversion of type for the window for speed
+    counter: u64,
+    last_counter_reset: Instant,
 }
 
 impl Monitor {
@@ -27,16 +30,17 @@ impl Monitor {
             last_cleanup: SystemTime::now(), // Initialize last cleanup to the current time.
             ja3_last_alerts: HashMap::new(), // Initialize ja3_last_alerts as an empty HashMap.
             bucket_window: bucket_window, // bucket window is conversion
+            counter: 0,
+            last_counter_reset: Instant::now(),
         }
     }
 
     // process a key, and return if its in violation or not
     pub fn process_key(&mut self, ja3: &str, current_ts: SystemTime) -> bool {
-        // if self.should_skip_alert(ja3, current_ts) {
-        //     log::warn!("Suppressing re-alert for ja3: {}", ja3);
-        //     return false;
-        // }
-    
+
+        self.counter+=1;
+        log::debug!("{} processing key: {}", self.counter, ja3);
+
         let should_alert = self.update_or_insert_bucket(ja3, current_ts);
     
         if should_alert {
@@ -77,7 +81,6 @@ impl Monitor {
                 }
                 new_bucket
             });
-
 
         // increment the bucket for the timestamp ( which is now )
         log::debug!("Troubleshooting window for key: {}", key);
@@ -174,6 +177,13 @@ impl Monitor {
         }
     }
 
+    pub fn print_stats(&mut self) {
+        if self.last_counter_reset.elapsed() >= Duration::new(1, 0) {
+            log::info!("Key rate: {}", self.counter);
+            self.counter = 0;
+            self.last_counter_reset = Instant::now();
+        }
+    }
 }
 
 
@@ -192,11 +202,11 @@ mod tests {
     fn test_new() {
         let args = AppArgs {
             interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
-            pcap_file: None,                            // No pcap file for testing
+            file: None,                            // No pcap file for testing
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
@@ -218,11 +228,11 @@ mod tests {
 
         let args = AppArgs {
             interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
-            pcap_file: None,                            // No pcap file for testing
+            file: None,                            // No pcap file for testing
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
@@ -244,11 +254,11 @@ mod tests {
     fn test_process_key_existing_key() {
         let args = AppArgs {
             interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
-            pcap_file: None,                            // No pcap file for testing
+            file: None,                            // No pcap file for testing
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
@@ -280,11 +290,11 @@ mod tests {
     fn test_cleanup_old_buckets() {
         let args = AppArgs {
             interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
-            pcap_file: None,                            // No pcap file for testing
+            file: None,                            // No pcap file for testing
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            dry_run: Some(true),                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing

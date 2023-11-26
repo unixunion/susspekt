@@ -3,7 +3,7 @@
 // This file may not be copied, modified, or distributed except according to those terms.
 
 use std::sync::Arc;
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 use clap::Parser;
 use args::AppArgs;
 mod whitelist;
@@ -12,6 +12,7 @@ use env_logger::Env;
 use ja3::Ja3;
 extern crate env_logger;
 use log::info;
+use time::Instant;
 use tokio::task::JoinHandle;
 use crate::monitor::Monitor;
 use crate::poster::HttpPoster;
@@ -89,6 +90,7 @@ async fn main() {
     let monitor_args = args.clone();
     tokio::spawn(async move {
         let mut monitor = Monitor::new(monitor_args.clone() );
+        let mut timer = Instant::now();
         // continuously read keys from the Sender
         while let Some(key) = monitor_rx.recv().await {
             log::debug!("process key: {:?}", key);
@@ -100,10 +102,11 @@ async fn main() {
         }
     });
 
+
     // file parser
-    if args.pcap_file.is_some() {
+    if args.file.is_some() {
         info!("Switching to file parsing mode");
-        let ja3 = Ja3::new(args.pcap_file.unwrap())
+        let ja3 = Ja3::new(args.file.unwrap())
             .process_pcap()
             .unwrap();
         for hash in ja3 {
