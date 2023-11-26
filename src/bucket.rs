@@ -1,3 +1,7 @@
+// Copyright 2023 Kegan Holtzhausen
+// Licensed under the MIT License (https://opensource.org/licenses/MIT)
+// This file may not be copied, modified, or distributed except according to those terms.
+
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 // Define a struct 'Bucket' to represent a bucket in a rolling window time series analysis.

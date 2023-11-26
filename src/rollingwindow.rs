@@ -1,3 +1,7 @@
+// Copyright 2023 Kegan Holtzhausen
+// Licensed under the MIT License (https://opensource.org/licenses/MIT)
+// This file may not be copied, modified, or distributed except according to those terms.
+
 use std::collections::VecDeque;
 use std::time::Duration;
 use std::time::SystemTime;
