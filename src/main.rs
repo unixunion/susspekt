@@ -14,6 +14,7 @@ extern crate env_logger;
 use log::info;
 use time::Instant;
 use tokio::task::JoinHandle;
+use crate::logdata::LogData;
 use crate::monitor::Monitor;
 use crate::poster::HttpPoster;
 use crate::whitelist::Whitelist;
@@ -23,6 +24,7 @@ mod monitor;
 mod bucket;
 mod rollingwindow;
 mod poster;
+mod logdata;
 
 const BUFFER_SIZE: usize = 65536 * 1;
 
@@ -59,7 +61,7 @@ async fn main() {
     // whitelist, to be used for ignoring processing, or ignoring alerting.
     let whitelist = Whitelist::new(
         Arc::new(args.parse_whitelist_networks()),
-        Arc::new(args.parse_whitelist_ja3s()),
+        Arc::new(args.parse_whitelist_ja3()),
     );
 
     // setup the eventing system
@@ -109,12 +111,31 @@ async fn main() {
         let ja3 = Ja3::new(args.file.unwrap())
             .process_pcap()
             .unwrap();
-        for hash in ja3 {
-            if hash.is_handshake {
-                let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
-                info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
-                let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
-            }
+        for packet in ja3 {
+
+            let ja3_str = match packet.hash {
+                Some(hash) => format!("{:x}-{}", hash, packet.source),
+                None => format!("None-{}", packet.source),
+            };
+
+            let log_data = LogData {
+                source: packet.source.to_string(),
+                destination: packet.destination.to_string(),
+                ja3: ja3_str.clone(),
+                packet_size: packet.packet_size,
+                is_handshake: packet.is_handshake,
+                ethernet_frame_size: packet.ethernet_frame_size,
+                is_syn: packet.is_syn,
+                is_fin: packet.is_fin,
+                is_rst: packet.is_rst,
+            };
+
+            let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
+            info!("{}", log_json);
+
+
+            // info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}, Ether Frame Size: {}", packet.source, packet.destination, ja3_str, packet.packet_size, packet.is_handshake, packet.ethernet_frame_size);
+            let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
         }
         log::info!("Waiting for threads to finish up...");
         for handle in tasks {
@@ -129,12 +150,29 @@ async fn main() {
         let mut ja3 = Ja3::new(args.interface.unwrap())
             .process_live()
             .unwrap();
-        while let Some(hash) = ja3.next() {
-            if hash.is_handshake {
-                let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
-                info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
-                let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
-            }
+        while let Some(packet) = ja3.next() {
+
+            let ja3_str = match packet.hash {
+                Some(hash) => format!("{:x}-{}", hash, packet.source),
+                None => format!("None-{}", packet.source),
+            };
+
+            let log_data = LogData {
+                source: packet.source.to_string(),
+                destination: packet.destination.to_string(),
+                ja3: ja3_str.clone(),
+                packet_size: packet.packet_size,
+                is_handshake: packet.is_handshake,
+                ethernet_frame_size: packet.ethernet_frame_size,
+                is_syn: packet.is_syn,
+                is_fin: packet.is_fin,
+                is_rst: packet.is_rst,
+            };
+
+            let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
+            info!("{}", log_json);
+            // info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}, Ether Frame Size: {}", packet.source, packet.destination, ja3_str, packet.packet_size, packet.is_handshake, packet.ethernet_frame_size);
+            let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
         }
     }
 
