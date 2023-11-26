@@ -1,14 +1,16 @@
-use clap::Parser;
+use std::error::Error;
+use clap::{Parser, ArgGroup};
 use ipnetwork::Ipv4Network;
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
+#[group(id = "input", required = true)]
 pub struct AppArgs {
-    #[arg(long, default_value="eth0", help = "network device for pcap listening, e.g: eth0")]
-    pub network: Option<String>,
+    #[arg(long, group = "input", help = "network device for pcap listening, e.g: eth0")]
+    pub interface: Option<String>,
 
     // log file pattern
-    #[arg(short, long, help = "pcap dump for testing")]
+    #[arg(short, long, group = "input", help = "pcap dump for testing, not yet implemented")]
     pub pcap_file: Option<String>,
 
     /// Threshold for triggering an alert
@@ -25,13 +27,13 @@ pub struct AppArgs {
 
     /// ELB host for updating block list
     #[arg(short, long, default_value = "http://localhost:8080/api/block/update", help = "The endpoint for updating the block list")]
-    pub elb_host: String,
+    pub alert_url: String,
 
     #[arg(long, help = "Pretend the ELB accepted the payload")]
-    pub elb_fake_mode: Option<bool>,
+    pub alert_fake_mode: Option<bool>,
 
     /// Duration for blocking suspicious traffic (in seconds)
-    #[arg(short, long, default_value_t = 86400, help = "Duration in seconds for how long to block suspicious traffic")]
+    #[arg(short, long, default_value_t = 86400, help = "Alert duration field value in seconds for how long to block suspicious traffic")]
     pub block_seconds: u32,
 
     /// Flag to parse the entire file from the beginning

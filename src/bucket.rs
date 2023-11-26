@@ -8,7 +8,7 @@ pub(crate) struct Bucket {
     pub sum_count: u16, // Sum of counts over the current rolling window.
     pub last_alert_ts: Option<Instant>, // Optional timestamp of the last alert. 'None' if no alert has been triggered.
     pub window_size: usize, // the rolling window size
-    start_ts: SystemTime,
+    // start_ts: SystemTime,
 }
 
 // Implementation of methods for the 'Bucket' struct.
@@ -22,7 +22,7 @@ impl Bucket {
             sum_count: 0, // Initialize sum_count to 0.
             last_alert_ts: None, // Initialize last_alert_ts to None, indicating no alerts have been triggered yet.
             window_size, // window size
-            start_ts: current_ts,
+            // start_ts: current_ts,
         }
     }
 
@@ -82,8 +82,11 @@ use std::{println as info, println as warn};
 use crate::rollingwindow::RollingWindow;
 
 mod tests {
-    use super::*;
-    use std::time::{Duration, Instant};
+    // use super::*;
+
+    use std::time::{SystemTime, Duration};
+
+    use crate::bucket::Bucket;
 
     #[test]
     fn test_bucket_initialization() {
@@ -97,7 +100,7 @@ mod tests {
         assert_eq!(bucket.window_size, window_size);
     }
 
-    #[test]    #[test]
+    #[test]
     fn test_update() {
         let mut bucket = Bucket::new("test_ja3".to_string(), SystemTime::now(), 60);
         let current_ts = SystemTime::now();

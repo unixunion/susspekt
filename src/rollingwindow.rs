@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
-use std::time::{Duration, Instant};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::Duration;
+use std::time::SystemTime;
 
 #[derive(Debug)]
 pub struct RollingWindow {

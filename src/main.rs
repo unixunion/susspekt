@@ -1,16 +1,13 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::SystemTime;
-use chrono::naive;
 use clap::Parser;
 use args::AppArgs;
 mod whitelist;
-use md5::{Digest};
+use md5::Digest;
 use env_logger::Env;
 use ja3::Ja3;
 extern crate env_logger;
-use log::{info};
-use tokio::time::Instant;
+use log::info;
 use crate::monitor::Monitor;
 use crate::poster::HttpPoster;
 use crate::whitelist::Whitelist;
@@ -36,7 +33,19 @@ async fn main() {
         })
         .init();
 
-    info!("susspekt-wire-sniffer");
+    let logo = r#"
+                               _    _
+                              | |  | |
+  ___ _   _ ___ ___ _ __   ___| | _| |_
+ / __| | | / __/ __| '_ \ / _ \ |/ / __|
+ \__ \ |_| \__ \__ \ |_) |  __/   <| |_
+ |___/\__,_|___/___/ .__/ \___|_|\_\\__|
+                   | |
+                   |_|
+
+"#;
+
+    info!("{}", logo);
 
     // argparse
     let args = AppArgs::parse();
@@ -60,7 +69,10 @@ async fn main() {
 
         // read keys from the Sender
         while let Some(key) = alerter_rx.recv().await {
-            poster.alert(key).await;
+            match poster.alert(key).await {
+                Ok(_) => {},
+                Err(e) => log::error!("Error posting: {}", e)
+            }
         }
     });
 
@@ -80,29 +92,40 @@ async fn main() {
         }
     });
 
-
-    // start the ja3 processor to feed off the network device
-    let mut ja3 = Ja3::new(args.network.unwrap())
-        .process_live()
-        .unwrap();
-
-
-    // handle ja3 arriving on the network and pass on
-    while let Some(hash) = ja3.next() {
-        if hash.is_handshake {
-            let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
-            info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
-            let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+    // file parser
+    if args.pcap_file.is_some() {
+        info!("Switching to file parsing mode");
+        let ja3 = Ja3::new(args.pcap_file.unwrap())
+            .process_pcap()
+            .unwrap();
+        for hash in ja3 {
+            if hash.is_handshake {
+                let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
+                info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
+                let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+            }
+        }
+    } else {
+        let mut ja3 = Ja3::new(args.interface.unwrap())
+            .process_live()
+            .unwrap();
+        while let Some(hash) = ja3.next() {
+            if hash.is_handshake {
+                let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
+                info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
+                let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+            }
         }
     }
+
 }
 
 
+
+
+
 /// turn a digest into a string
-fn digest_to_string(digest_option: Option<Digest>) -> String {
-    match digest_option {
-        Some(digest) => format!("{:x}", digest),
-        None => String::from("No Digest"),
-    }
+fn digest_to_string(digest: Digest) -> String {
+    format!("{:x}", digest)
 }
 

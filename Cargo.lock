@@ -814,7 +814,7 @@ checksum = "af150ab688ff2122fcef229be89cb50dd66af9e01a4ff320cc137eecc9bacc38"
 [[package]]
 name = "ja3"
 version = "0.5.0"
-source = "git+https://github.com/unixunion/ja3-rs.git#5443da80c21353b9ad9a9137ac763fdceb50d4eb"
+source = "git+https://github.com/unixunion/ja3-rs.git#cf36e6325eea287c4cf02e8da3c05228994e5621"
 dependencies = [
  "failure",
  "lazy_static",
@@ -1607,6 +1607,7 @@ dependencies = [
  "log",
  "md5",
  "reqwest",
+ "serde",
  "time",
  "tokio",
  "wiremock",

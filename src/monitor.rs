@@ -4,7 +4,6 @@ use std::time::SystemTime;
 
 use crate::args::AppArgs;
 use crate::bucket::Bucket;
-use crate::whitelist::Whitelist;
 
 pub(crate) struct Monitor {
     args: AppArgs,
@@ -160,7 +159,7 @@ impl Monitor {
 
 
 
-    pub fn print_top_buckets(&self, top_n: usize) {
+    pub fn _print_top_buckets(&self, top_n: usize) {
         let mut buckets: Vec<_> = self.buckets.iter().collect();
         // Sort buckets by sum_count in descending order
         buckets.sort_by(|a, b| b.1.rolling_window.sum().cmp(&a.1.rolling_window.sum()));
@@ -180,6 +179,7 @@ mod tests {
     use clap::Parser;
 
     use crate::args::AppArgs;
+    use crate::whitelist::Whitelist;
 
     use super::*;
     use std::sync::Arc;
@@ -187,7 +187,19 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let args = AppArgs::parse();
+        let args = AppArgs {
+            interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
+            pcap_file: None,                            // No pcap file for testing
+            threshold: 1000,                            // Example threshold value
+            window: 60,                                  // Example window value in seconds
+            alert_url: "Foo".to_string(),                // Mock ELB host
+            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            block_seconds: 86400,                       // Example block duration in seconds
+            whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
+            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+        };
+
         let nws = Arc::new(args.parse_whitelist_networks());
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
@@ -201,7 +213,19 @@ mod tests {
     #[test]
     fn test_process_key_new_key() {
 
-        let args = AppArgs::parse();
+        let args = AppArgs {
+            interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
+            pcap_file: None,                            // No pcap file for testing
+            threshold: 1000,                            // Example threshold value
+            window: 60,                                  // Example window value in seconds
+            alert_url: "Foo".to_string(),                // Mock ELB host
+            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            block_seconds: 86400,                       // Example block duration in seconds
+            whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
+            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+        };
+
         let nws = Arc::new(args.parse_whitelist_networks());
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
@@ -215,7 +239,18 @@ mod tests {
 
     #[test]
     fn test_process_key_existing_key() {
-        let args = AppArgs::parse();
+        let args = AppArgs {
+            interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
+            pcap_file: None,                            // No pcap file for testing
+            threshold: 1000,                            // Example threshold value
+            window: 60,                                  // Example window value in seconds
+            alert_url: "Foo".to_string(),                // Mock ELB host
+            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            block_seconds: 86400,                       // Example block duration in seconds
+            whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
+            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+        };
         let nws = Arc::new(args.parse_whitelist_networks());
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
@@ -240,7 +275,18 @@ mod tests {
 
     #[test]
     fn test_cleanup_old_buckets() {
-        let args = AppArgs::parse();
+        let args = AppArgs {
+            interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
+            pcap_file: None,                            // No pcap file for testing
+            threshold: 1000,                            // Example threshold value
+            window: 60,                                  // Example window value in seconds
+            alert_url: "Foo".to_string(),                // Mock ELB host
+            alert_fake_mode: Some(true),                 // Enable fake mode for testing
+            block_seconds: 86400,                       // Example block duration in seconds
+            whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
+            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+        };
         let nws = Arc::new(args.parse_whitelist_networks());
         let ja3s = Arc::new(args.parse_whitelist_ja3s());
         let whitelist = Whitelist::new(nws, ja3s);
