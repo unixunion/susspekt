@@ -10,18 +10,14 @@ use ipnetwork::Ipv4Network;
 pub struct Whitelist {
     pub networks: Arc<Vec<Ipv4Network>>,
     pub ja3s: Arc<Vec<String>>,
-    ja3s_enabled: bool,
 }
 
 impl Whitelist {
     // Constructor
     pub fn new(networks: Arc<Vec<Ipv4Network>>, ja3s: Arc<Vec<String>>) -> Self {
-        let ja3s_enabled = !ja3s.is_empty(); // true if ja3s length is non-zero
-
         Whitelist {
             networks,
             ja3s,
-            ja3s_enabled
         }
     }
 
@@ -37,7 +33,7 @@ impl Whitelist {
 
     // Check if a JA3 is whitelisted
     pub fn is_ja3_whitelisted(&self, ja3: &str) -> bool {
-        if ! self.ja3s_enabled {
+        if self.ja3s.len()==0 {
             return false;
         }
         self.ja3s.contains(&ja3.to_string())
