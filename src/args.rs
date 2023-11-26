@@ -1,5 +1,8 @@
-use std::error::Error;
-use clap::{Parser, ArgGroup};
+// Copyright 2023 Kegan Holtzhausen
+// Licensed under the MIT License (https://opensource.org/licenses/MIT)
+// This file may not be copied, modified, or distributed except according to those terms.
+
+use clap::Parser;
 use ipnetwork::Ipv4Network;
 
 #[derive(Parser, Debug, Clone)]

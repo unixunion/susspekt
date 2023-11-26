@@ -1,4 +1,7 @@
-use std::fmt::Error;
+// Copyright 2023 Kegan Holtzhausen
+// Licensed under the MIT License (https://opensource.org/licenses/MIT)
+// This file may not be copied, modified, or distributed except according to those terms.
+
 use std::sync::Arc;
 use std::time::SystemTime;
 use clap::Parser;
