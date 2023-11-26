@@ -9,12 +9,12 @@ use ipnetwork::Ipv4Network;
 #[command(author, version, about, long_about = None)]
 #[group(id = "input", required = true)]
 pub struct AppArgs {
-    #[arg(long, group = "input", help = "network device for pcap listening, e.g: eth0")]
+    #[arg(short, long, group = "input", help = "Network device to sniff, e.g: eth0")]
     pub interface: Option<String>,
 
     // log file pattern
-    #[arg(short, long, group = "input", help = "pcap dump for testing, not yet implemented")]
-    pub pcap_file: Option<String>,
+    #[arg(short, long, group = "input", help = "The pcap file to analyse for testing. NOTE: timing windows dont work with files")]
+    pub file: Option<String>,
 
     /// Threshold for triggering an alert
     #[arg(short, long, default_value_t = 1000, help = "Threshold number of occurrences of a ja3-remote_addr-uri in the window")]

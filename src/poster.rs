@@ -146,7 +146,7 @@ mod tests {
         
         let mut http_poster = HttpPoster::new(AppArgs {
             interface: Some("Foo".to_string()),           // Assuming "Foo" is a mock network device name
-            pcap_file: None,                            // No pcap file for testing
+            file: None,                            // No pcap file for testing
             threshold: 1000,                            // Example threshold value
             window: 1,                                  // Example window value in seconds
             alert_url: mock_server.uri(),                // Mock ELB host
