@@ -1,3 +1,4 @@
+use std::fmt::Error;
 use std::sync::Arc;
 use std::time::SystemTime;
 use clap::Parser;
@@ -8,6 +9,7 @@ use env_logger::Env;
 use ja3::Ja3;
 extern crate env_logger;
 use log::info;
+use tokio::task::JoinHandle;
 use crate::monitor::Monitor;
 use crate::poster::HttpPoster;
 use crate::whitelist::Whitelist;
@@ -60,10 +62,12 @@ async fn main() {
     let (monitor_tx, mut monitor_rx) = tokio::sync::mpsc::channel::<String>(BUFFER_SIZE);
     let (alerter_tx, mut alerter_rx) = tokio::sync::mpsc::channel::<String>(BUFFER_SIZE);
 
+    // holder for tasks
+    let mut tasks: Vec<JoinHandle<()>> = Vec::new();
+
     // alerter event listener
     let poster_args = args.clone();
-    tokio::spawn(async move {
-
+    let poster_task = tokio::spawn(async move {
         // alerter
         let mut poster = HttpPoster::new(poster_args);
 
@@ -75,6 +79,7 @@ async fn main() {
             }
         }
     });
+    tasks.push(poster_task);
 
 
     // monitoring event listener, passes keys to the monitoring impl
@@ -103,6 +108,15 @@ async fn main() {
                 let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
                 info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
                 let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+            }
+        }
+        log::info!("Waiting for threads to finish up...");
+        for handle in tasks {
+            match handle.await {
+                Ok(result) => match result {
+                    () => println!("Task completed successfully")
+                },
+                Err(e) => println!("Task panicked: {:?}", e),
             }
         }
     } else {
