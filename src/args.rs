@@ -8,8 +8,8 @@ pub struct AppArgs {
     pub network: Option<String>,
 
     // log file pattern
-    #[arg(short, long, default_value="idontexist.pcap", help = "pcap dump for testing")]
-    pub pack_file: String,
+    #[arg(short, long, help = "pcap dump for testing")]
+    pub pcap_file: Option<String>,
 
     /// Threshold for triggering an alert
     #[arg(short, long, default_value_t = 1000, help = "Threshold number of occurrences of a ja3-remote_addr-uri in the window")]
@@ -24,7 +24,7 @@ pub struct AppArgs {
     // pub concurrency: usize,
 
     /// ELB host for updating block list
-    #[arg(short, long, default_value = "https://localhost:8443/api/block/update", help = "The endpoint for updating the block list")]
+    #[arg(short, long, default_value = "http://localhost:8080/api/block/update", help = "The endpoint for updating the block list")]
     pub elb_host: String,
 
     #[arg(long, help = "Pretend the ELB accepted the payload")]
