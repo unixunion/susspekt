@@ -54,23 +54,13 @@ cargo build --release
 # Log output
 
 ```
-
-2023-11-26T08:41:10.492712Z: INFO - susspekt-wire-sniffer
-2023-11-26T08:41:14.083062Z: INFO - Source: 192.168.0.7, Destination: 83.255.219.16, JA3: 0401c0b25dff8b94bcb822b4b2e6d75b-192.168.0.7, Packet Size: 569, Is Handshake: true
-2023-11-26T08:41:14.083952Z: INFO - Source: 192.168.0.7, Destination: 108.157.229.40, JA3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, Packet Size: 572, Is Handshake: true
-2023-11-26T08:41:14.084175Z: INFO - Source: 192.168.0.7, Destination: 34.36.212.39, JA3: 579ccef312d18482fc42e2b822ca2430-192.168.0.7, Packet Size: 569, Is Handshake: true
-2023-11-26T08:41:14.084493Z: INFO - Source: 192.168.0.7, Destination: 34.36.212.39, JA3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, Packet Size: 707, Is Handshake: true
-2023-11-26T08:41:14.084681Z: INFO - Threshold violation, threshold: 1 exceeded within 10 seconds, for ja3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7
-2023-11-26T08:41:14.084775Z: INFO - Bucket key: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, Last Timestamp: SystemTime { tv_sec: 1700988074, tv_nsec: 84638997 }, Rolling Values: [2], Total Count: 2
-2023-11-26T08:41:14.084841Z: WARN - Alerting for "c279b0189edb9269da7bc43dea5e0c36-192.168.0.7"
-2023-11-26T08:41:14.087836Z: WARN - Alert sent...
-2023-11-26T08:41:14.871482Z: INFO - Source: 192.168.0.7, Destination: 65.9.55.3, JA3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, Packet Size: 570, Is Handshake: true
-2023-11-26T08:41:14.871691Z: INFO - Source: 192.168.0.7, Destination: 34.36.212.39, JA3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, Packet Size: 707, Is Handshake: true
-2023-11-26T08:41:14.871699Z: INFO - Threshold violation, threshold: 1 exceeded within 10 seconds, for ja3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7
-2023-11-26T08:41:14.871753Z: INFO - Bucket key: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, Last Timestamp: SystemTime { tv_sec: 1700988074, tv_nsec: 871665394 }, Rolling Values: [3], Total Count: 3
-2023-11-26T08:41:14.871792Z: INFO - Threshold violation, threshold: 1 exceeded within 10 seconds, for ja3: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7
-2023-11-26T08:41:14.871802Z: INFO - Bucket key: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, Last Timestamp: SystemTime { tv_sec: 1700988074, tv_nsec: 871789280 }, Rolling Values: [4], Total Count: 4
-2023-11-26T08:41:14.871833Z: WARN - Last alert for key: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, was at: SystemTime { tv_sec: 1700988074, tv_nsec: 87865596 }
-2023-11-26T08:41:14.871842Z: WARN - Supressing alert, last alert for key: c279b0189edb9269da7bc43dea5e0c36-192.168.0.7, was at: SystemTime { tv_sec: 1700988074, tv_nsec: 87865596 }, elapsed time since then: 783.975432ms
-
+2023-11-27T09:14:25.288728Z: INFO - {"source":"192.168.0.7","destination":"34.149.100.209","ja3":"579ccef312d18482fc42e2b822ca2430","packet_size":569,"is_handshake":true,"ethernet_frame_size":583,"is_syn":false,"is_fin":false,"is_rst":false}
+2023-11-27T09:14:25.288749Z: INFO - Threshold violation, threshold: 1 exceeded within 10 seconds, for ja3: 579ccef312d18482fc42e2b822ca2430
+2023-11-27T09:14:25.288758Z: INFO - {"source":"192.168.0.7","destination":"216.58.207.194","ja3":"None-192.168.0.7","packet_size":60,"is_handshake":false,"ethernet_frame_size":74,"is_syn":true,"is_fin":false,"is_rst":false}
+2023-11-27T09:14:25.288767Z: INFO - {"source":"192.168.0.7","destination":"216.58.207.194","ja3":"None-192.168.0.7","packet_size":60,"is_handshake":false,"ethernet_frame_size":74,"is_syn":true,"is_fin":false,"is_rst":false}
+2023-11-27T09:14:25.288770Z: INFO - Bucket key: 579ccef312d18482fc42e2b822ca2430, Last Timestamp: SystemTime { tv_sec: 1701076465, tv_nsec: 288738671 }, Rolling Values: [2], Total Count: 2
+2023-11-27T09:14:25.288792Z: WARN - Alerting for "579ccef312d18482fc42e2b822ca2430"
+2023-11-27T09:14:25.288798Z: INFO - {"source":"192.168.0.7","destination":"216.58.207.194","ja3":"579ccef312d18482fc42e2b822ca2430","packet_size":569,"is_handshake":true,"ethernet_frame_size":583,"is_syn":false,"is_fin":false,"is_rst":false}
+2023-11-27T09:14:25.288798Z: INFO - Posting alert to: http://localhost:8080/api/block/update
+2023-11-27T09:14:25.288829Z: INFO - {"source":"192.168.0.7","destination":"216.58.207.194","ja3":"579ccef312d18482fc42e2b822ca2430","packet_size":569,"is_handshake":true,"ethernet_frame_size":583,"is_syn":false,"is_fin":false,"is_rst":false}
 ```
