@@ -1,7 +1,7 @@
 # Susspekt
 
-Sniffs TLS traffic on the network, and tracks JA3's making new connections. Aggregates http handshake rates based on `{ja3}-{remote_addr}`, and if thresholds are violated, posts the 
-suspect `{ja3}-{remote_addr}` to a rest endpoint as a simple json object:
+Sniffs TLS traffic on the network, and tracks JA3's making new connections. Aggregates http handshake rates based on `{ja3}` or `{ja3}-{remote_addr}`, and if thresholds are violated, posts the 
+suspect `{ja3}`/`{ja3}-{remote_addr}` to a rest endpoint as a simple json object:
 
 ```json
 {
