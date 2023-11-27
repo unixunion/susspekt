@@ -4,12 +4,13 @@
 
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
+use clap::builder::Str;
 use clap::Parser;
 use args::AppArgs;
 mod whitelist;
 use md5::Digest;
 use env_logger::Env;
-use ja3::Ja3;
+use ja3::{Ja3, Ja3Hash};
 extern crate env_logger;
 use log::info;
 use time::Instant;
@@ -113,10 +114,7 @@ async fn main() {
             .unwrap();
         for packet in ja3 {
 
-            let ja3_str = match packet.hash {
-                Some(hash) => format!("{:x}-{}", hash, packet.source),
-                None => format!("None-{}", packet.source),
-            };
+            let ja3_str = generate_key(&packet, args.agg_ip);
 
             let log_data = LogData {
                 source: packet.source.to_string(),
@@ -130,12 +128,11 @@ async fn main() {
                 is_rst: packet.is_rst,
             };
 
-            let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
-            info!("{}", log_json);
-
-
-            // info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}, Ether Frame Size: {}", packet.source, packet.destination, ja3_str, packet.packet_size, packet.is_handshake, packet.ethernet_frame_size);
-            let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+            if packet.is_fin || packet.is_rst || packet.is_syn || packet.is_handshake{
+                let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
+                info!("{}", log_json);
+                let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+            }
         }
         log::info!("Waiting for threads to finish up...");
         for handle in tasks {
@@ -152,10 +149,7 @@ async fn main() {
             .unwrap();
         while let Some(packet) = ja3.next() {
 
-            let ja3_str = match packet.hash {
-                Some(hash) => format!("{:x}-{}", hash, packet.source),
-                None => format!("None-{}", packet.source),
-            };
+            let ja3_str = generate_key(&packet, args.agg_ip);
 
             let log_data = LogData {
                 source: packet.source.to_string(),
@@ -169,10 +163,11 @@ async fn main() {
                 is_rst: packet.is_rst,
             };
 
-            let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
-            info!("{}", log_json);
-            // info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}, Ether Frame Size: {}", packet.source, packet.destination, ja3_str, packet.packet_size, packet.is_handshake, packet.ethernet_frame_size);
-            let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+            if packet.is_fin || packet.is_rst || packet.is_syn || packet.is_handshake{
+                let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
+                info!("{}", log_json);
+                let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
+            }
         }
     }
 
@@ -187,3 +182,22 @@ fn digest_to_string(digest: Digest) -> String {
     format!("{:x}", digest)
 }
 
+fn generate_key(packet: &Ja3Hash, agg_ip: bool) -> String {
+    let ja3_str = match packet.hash {
+        Some(hash) => {
+            if agg_ip {
+                format!("{:x}-{}", hash, packet.source)
+            } else {
+                format!("{:x}", hash)
+            }
+        }
+        None => {
+            if agg_ip {
+                format!("None-{}", packet.source)
+            } else {
+                format!("None-{}", packet.source)
+            }
+        }
+    };
+    return ja3_str;
+}

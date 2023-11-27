@@ -55,6 +55,8 @@ pub struct AppArgs {
     #[arg(long, help = "enable logging for new buckets")]
     pub log_create_buckets: Option<bool>,
 
+    #[arg(long, default_value_t=false, help = "add IP to the ja3 hash as a key to aggregate on, e.g: {ja3}-{remote_addr}")]
+    pub agg_ip: bool,
 
 }
 

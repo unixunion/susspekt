@@ -159,6 +159,7 @@ mod tests {
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true,
         });
 
         Mock::given(method("POST"))
@@ -201,6 +202,7 @@ mod tests {
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true,
         });
 
         Mock::given(method("POST"))
