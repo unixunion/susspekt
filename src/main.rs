@@ -4,16 +4,18 @@
 
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
+use clap::builder::Str;
 use clap::Parser;
 use args::AppArgs;
 mod whitelist;
 use md5::Digest;
 use env_logger::Env;
-use ja3::Ja3;
+use ja3::{Ja3, Ja3Hash};
 extern crate env_logger;
 use log::info;
 use time::Instant;
 use tokio::task::JoinHandle;
+use crate::logdata::LogData;
 use crate::monitor::Monitor;
 use crate::poster::HttpPoster;
 use crate::whitelist::Whitelist;
@@ -23,6 +25,7 @@ mod monitor;
 mod bucket;
 mod rollingwindow;
 mod poster;
+mod logdata;
 
 const BUFFER_SIZE: usize = 65536 * 1;
 
@@ -59,7 +62,7 @@ async fn main() {
     // whitelist, to be used for ignoring processing, or ignoring alerting.
     let whitelist = Whitelist::new(
         Arc::new(args.parse_whitelist_networks()),
-        Arc::new(args.parse_whitelist_ja3s()),
+        Arc::new(args.parse_whitelist_ja3()),
     );
 
     // setup the eventing system
@@ -109,10 +112,25 @@ async fn main() {
         let ja3 = Ja3::new(args.file.unwrap())
             .process_pcap()
             .unwrap();
-        for hash in ja3 {
-            if hash.is_handshake {
-                let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
-                info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
+        for packet in ja3 {
+
+            let ja3_str = generate_key(&packet, args.agg_ip);
+
+            let log_data = LogData {
+                source: packet.source.to_string(),
+                destination: packet.destination.to_string(),
+                ja3: ja3_str.clone(),
+                packet_size: packet.packet_size,
+                is_handshake: packet.is_handshake,
+                ethernet_frame_size: packet.ethernet_frame_size,
+                is_syn: packet.is_syn,
+                is_fin: packet.is_fin,
+                is_rst: packet.is_rst,
+            };
+
+            if packet.is_fin || packet.is_rst || packet.is_syn || packet.is_handshake{
+                let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
+                info!("{}", log_json);
                 let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
             }
         }
@@ -129,10 +147,25 @@ async fn main() {
         let mut ja3 = Ja3::new(args.interface.unwrap())
             .process_live()
             .unwrap();
-        while let Some(hash) = ja3.next() {
-            if hash.is_handshake {
-                let ja3_str = format!("{}-{}", digest_to_string(hash.hash), hash.source); // Convert the digest to String
-                info!("Source: {}, Destination: {}, JA3: {}, Packet Size: {}, Is Handshake: {}", hash.source, hash.destination, ja3_str, hash.packet_size, hash.is_handshake);
+        while let Some(packet) = ja3.next() {
+
+            let ja3_str = generate_key(&packet, args.agg_ip);
+
+            let log_data = LogData {
+                source: packet.source.to_string(),
+                destination: packet.destination.to_string(),
+                ja3: ja3_str.clone(),
+                packet_size: packet.packet_size,
+                is_handshake: packet.is_handshake,
+                ethernet_frame_size: packet.ethernet_frame_size,
+                is_syn: packet.is_syn,
+                is_fin: packet.is_fin,
+                is_rst: packet.is_rst,
+            };
+
+            if packet.is_fin || packet.is_rst || packet.is_syn || packet.is_handshake{
+                let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
+                info!("{}", log_json);
                 let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
             }
         }
@@ -149,3 +182,22 @@ fn digest_to_string(digest: Digest) -> String {
     format!("{:x}", digest)
 }
 
+fn generate_key(packet: &Ja3Hash, agg_ip: bool) -> String {
+    let ja3_str = match packet.hash {
+        Some(hash) => {
+            if agg_ip {
+                format!("{:x}-{}", hash, packet.source)
+            } else {
+                format!("{:x}", hash)
+            }
+        }
+        None => {
+            if agg_ip {
+                format!("None-{}", packet.source)
+            } else {
+                format!("None-{}", packet.source)
+            }
+        }
+    };
+    return ja3_str;
+}

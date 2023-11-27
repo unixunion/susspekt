@@ -32,8 +32,8 @@ pub struct AppArgs {
     #[arg(short, long, default_value = "http://localhost:8080/api/block/update", help = "The endpoint for updating the block list")]
     pub alert_url: String,
 
-    #[arg(short, long, help = "DryRun disables posting the alerts to the --alert-url")]
-    pub dry_run: Option<bool>,
+    #[arg(short, long, default_value_t=false, help = "DryRun disables posting the alerts to the --alert-url")]
+    pub dry_run: bool,
 
     /// Duration for blocking suspicious traffic (in seconds)
     #[arg(short, long, default_value_t = 86400, help = "Alert duration field value in seconds for how long to block suspicious traffic")]
@@ -48,13 +48,15 @@ pub struct AppArgs {
     pub whitelist_networks: String,
 
     /// Whitelist of JA3 hashes
-    #[arg(long, help = "Optional comma-separated list of whitelisted md5_semi_ja3")]
-    pub whitelist_ja3s: Option<String>,
+    #[arg(long, default_value = "None", help = "Optional comma-separated list of whitelisted md5_semi_ja3")]
+    pub whitelist_ja3s: String,
 
     /// Log creation of new buckets
     #[arg(long, help = "enable logging for new buckets")]
     pub log_create_buckets: Option<bool>,
 
+    #[arg(long, default_value_t=false, help = "add IP to the ja3 hash as a key to aggregate on, e.g: {ja3}-{remote_addr}")]
+    pub agg_ip: bool,
 
 }
 
@@ -69,18 +71,16 @@ impl AppArgs {
     }
 
 
-    pub fn parse_whitelist_ja3s(&self) -> Vec<String> {
-        match &self.whitelist_ja3s {
-            Some(x) => {
-                x.split(',')
-                    .filter_map(|s| s.trim().parse::<String>().ok())
-                    .collect()
-            },
-            None => {
-                log::debug!("No whitelist ja3s provided");
-                Vec::new()
-            },
+    pub fn parse_whitelist_ja3(&self) -> Vec<String> {
+        if self.whitelist_ja3s.is_empty() {
+            log::debug!("No whitelist ja3s provided");
+            Vec::new()
+        } else {
+            self.whitelist_ja3s.split(',')
+                .map(|s| s.trim().to_string())
+                .collect()
         }
     }
+
 
 }

@@ -39,7 +39,7 @@ impl HttpPoster {
 
     // Async method to post data
     pub async fn post_data<T: Serialize>(&self, data: &T) -> Result<(), Error> {
-        if self.args.dry_run.unwrap() {
+        if self.args.dry_run {
             log::info!("DryRun, not posting to {}", self.args.alert_url);
             return Ok(())
         }
@@ -154,11 +154,12 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 1,                                  // Example window value in seconds
             alert_url: mock_server.uri(),                // Mock ELB host
-            dry_run: Some(false),                       // Enable fake mode for testing
+            dry_run: false,                       // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
-            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true,
         });
 
         Mock::given(method("POST"))
@@ -196,11 +197,12 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 1,                                  // Example window value in seconds
             alert_url: mock_server.uri(),                // Mock ELB host
-            dry_run: Some(true),                 // Enable fake mode for testing
+            dry_run: true,                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
-            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true,
         });
 
         Mock::given(method("POST"))

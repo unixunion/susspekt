@@ -18,13 +18,14 @@ pub(crate) struct Monitor {
     bucket_window: usize, // the window to bucket by, just a conversion of type for the window for speed
     counter: u64,
     last_counter_reset: Instant,
+    whitelisted_ja3: Vec<String>,
 }
 
 impl Monitor {
     pub fn new(args: AppArgs) -> Self {
         let bucket_window = args.window as usize;
         Monitor {
-            args: args,
+            args: args.clone(),
             buckets: HashMap::new(), // Initialize buckets as an empty HashMap.
             _last_check: SystemTime::now(), // Initialize last check to the current time.
             last_cleanup: SystemTime::now(), // Initialize last cleanup to the current time.
@@ -32,13 +33,21 @@ impl Monitor {
             bucket_window: bucket_window, // bucket window is conversion
             counter: 0,
             last_counter_reset: Instant::now(),
+            whitelisted_ja3: args.clone().parse_whitelist_ja3(),
         }
     }
 
     // process a key, and return if its in violation or not
     pub fn process_key(&mut self, ja3: &str, current_ts: SystemTime) -> bool {
 
+        if self.whitelisted_ja3.contains(&ja3.split("-").next().unwrap_or("None").to_string()) {
+            log::debug!("{} is in whitelisted ja3", ja3);
+            return false
+        }
+
         self.counter+=1;
+        // self.print_stats();
+
         log::debug!("{} processing key: {}", self.counter, ja3);
 
         let should_alert = self.update_or_insert_bucket(ja3, current_ts);
@@ -206,15 +215,16 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            dry_run: Some(true),                 // Enable fake mode for testing
+            dry_run: true,                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
-            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true                                // include IP in the key
         };
 
         let nws = Arc::new(args.parse_whitelist_networks());
-        let ja3s = Arc::new(args.parse_whitelist_ja3s());
+        let ja3s = Arc::new(args.parse_whitelist_ja3());
         let whitelist = Whitelist::new(nws, ja3s);
 
         let md = Monitor::new(args);
@@ -232,15 +242,16 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            dry_run: Some(true),                 // Enable fake mode for testing
+            dry_run: true,                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
-            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true                                // include IP in the key
         };
 
         let nws = Arc::new(args.parse_whitelist_networks());
-        let ja3s = Arc::new(args.parse_whitelist_ja3s());
+        let ja3s = Arc::new(args.parse_whitelist_ja3());
         let whitelist = Whitelist::new(nws, ja3s);
 
         let mut md = Monitor::new(args);
@@ -258,14 +269,15 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            dry_run: Some(true),                 // Enable fake mode for testing
+            dry_run: true,                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
-            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true                                // include IP in the key
         };
         let nws = Arc::new(args.parse_whitelist_networks());
-        let ja3s = Arc::new(args.parse_whitelist_ja3s());
+        let ja3s = Arc::new(args.parse_whitelist_ja3());
         let whitelist = Whitelist::new(nws, ja3s);
 
         let mut md = Monitor::new(args);
@@ -294,14 +306,15 @@ mod tests {
             threshold: 1000,                            // Example threshold value
             window: 60,                                  // Example window value in seconds
             alert_url: "Foo".to_string(),                // Mock ELB host
-            dry_run: Some(true),                 // Enable fake mode for testing
+            dry_run: true,                 // Enable fake mode for testing
             block_seconds: 86400,                       // Example block duration in seconds
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
-            whitelist_ja3s: None,                       // No whitelisted JA3 hashes for testing
+            whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
+            agg_ip: true                                // include IP in the key
         };
         let nws = Arc::new(args.parse_whitelist_networks());
-        let ja3s = Arc::new(args.parse_whitelist_ja3s());
+        let ja3s = Arc::new(args.parse_whitelist_ja3());
         let whitelist = Whitelist::new(nws, ja3s);
         let mut md = Monitor::new(args);
         let current_ts = SystemTime::now();
