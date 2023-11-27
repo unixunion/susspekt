@@ -137,7 +137,6 @@ impl HttpPoster {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use env_logger;
     use wiremock::{MockServer, Mock, ResponseTemplate};
     use wiremock::matchers::{method, path};
     use std::time::Duration;
@@ -160,6 +159,7 @@ mod tests {
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
             agg_ip: true,
+            log_config: "".to_string(),
         });
 
         Mock::given(method("POST"))
@@ -203,6 +203,7 @@ mod tests {
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
             agg_ip: true,
+            log_config: "".to_string(),
         });
 
         Mock::given(method("POST"))

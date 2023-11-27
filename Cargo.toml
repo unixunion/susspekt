@@ -9,7 +9,7 @@ edition = "2021"
 #ja3 = { version = "0.5.1", features = ["live-capture", "pcap"] }
 #ja3 = {path = "/home/kegan/RustroverProjects/ja3-rs",  features = ["live-capture", "pcap"]}
 ja3 = {git = "https://github.com/unixunion/ja3-rs.git", features = ["live-capture", "pcap"]}
-env_logger = "0.10.1"
+#env_logger = "0.10.1"
 log = "0.4.20"
 time = "0.3.30"
 chrono = "0.4.31"
@@ -20,7 +20,12 @@ reqwest = { version="0.11.22", features = ["json"] }
 tokio = {version="1.34.0",features = ["full"] }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
+log4rs = "1.2.0"
 
 [dev-dependencies]
 wiremock = "0.5.21"
-env_logger = "0.10.1"
+log4rs = "1.2.0"
+#env_logger = "0.10.1"
+
+[profile.release]
+debug = true

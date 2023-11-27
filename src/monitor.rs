@@ -220,7 +220,8 @@ mod tests {
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
-            agg_ip: true                                // include IP in the key
+            agg_ip: true,                                // include IP in the key
+            log_config: "".to_string(),
         };
 
         let nws = Arc::new(args.parse_whitelist_networks());
@@ -247,7 +248,8 @@ mod tests {
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
-            agg_ip: true                                // include IP in the key
+            agg_ip: true,                                // include IP in the key
+            log_config: "".to_string(),
         };
 
         let nws = Arc::new(args.parse_whitelist_networks());
@@ -274,7 +276,8 @@ mod tests {
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
-            agg_ip: true                                // include IP in the key
+            agg_ip: true,                                // include IP in the key
+            log_config: "".to_string(),
         };
         let nws = Arc::new(args.parse_whitelist_networks());
         let ja3s = Arc::new(args.parse_whitelist_ja3());
@@ -311,7 +314,8 @@ mod tests {
             whitelist_networks: "10.0.0.0/8, 192.168.0.0/16".to_string(), // Example whitelisted networks
             whitelist_ja3s: "None".to_string(),                       // No whitelisted JA3 hashes for testing
             log_create_buckets: Some(false),            // Disable logging for bucket creation in test
-            agg_ip: true                                // include IP in the key
+            agg_ip: true,                                // include IP in the key
+            log_config: "".to_string(),
         };
         let nws = Arc::new(args.parse_whitelist_networks());
         let ja3s = Arc::new(args.parse_whitelist_ja3());

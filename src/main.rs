@@ -2,17 +2,18 @@
 // Licensed under the MIT License (https://opensource.org/licenses/MIT)
 // This file may not be copied, modified, or distributed except according to those terms.
 
+use std::io::stdout;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
-use clap::builder::Str;
+use std::time::SystemTime;
 use clap::Parser;
 use args::AppArgs;
 mod whitelist;
 use md5::Digest;
-use env_logger::Env;
 use ja3::{Ja3, Ja3Hash};
-extern crate env_logger;
-use log::info;
+use log4rs::append::console::ConsoleAppender;
+use log4rs::Config;
+use log4rs::config::{Appender, Logger, Root};
+use log::LevelFilter;
 use time::Instant;
 use tokio::task::JoinHandle;
 use crate::logdata::LogData;
@@ -33,14 +34,27 @@ const BUFFER_SIZE: usize = 65536 * 1;
 #[tokio::main(flavor = "multi_thread", worker_threads = 4)]
 async fn main() {
 
-    // simple logger, log4-rs might be better
-    env_logger::Builder::from_env(Env::default().default_filter_or("ja3=error,susspekt=info"))
-        .format(|buf, record| {
-            use std::io::Write;
-            let ts = buf.timestamp_micros();
-            writeln!(buf, "{}: {} - {}", ts, record.level(), record.args())
-        })
-        .init();
+    // argparse
+    let args = AppArgs::parse();
+
+    println!("loading config: {}", &args.log_config);
+    match log4rs::init_file(&args.log_config, Default::default()) {
+        Ok(_) => {},
+        Err(e) => {
+            let stdout = ConsoleAppender::builder().build();
+            let config = Config::builder()
+                .appender(Appender::builder().build("stdout", Box::new(stdout)))
+                .logger(Logger::builder()
+                    .appender("stdout")
+                    .additive(false)
+                    .build("susspekt", LevelFilter::Info))
+                .build(Root::builder().appender("stdout").build(LevelFilter::Warn))
+                .unwrap();
+
+            log4rs::init_config(config).expect("Unable to bootstrap default config");
+            // panic!("Error loading config: {}", e)
+        }
+    }
 
     let logo = r#"
                                _    _
@@ -54,10 +68,9 @@ async fn main() {
 
 "#;
 
-    info!("{}", logo);
+    log::info!("{}", logo);
 
-    // argparse
-    let args = AppArgs::parse();
+
 
     // whitelist, to be used for ignoring processing, or ignoring alerting.
     let whitelist = Whitelist::new(
@@ -108,7 +121,7 @@ async fn main() {
 
     // file parser
     if args.file.is_some() {
-        info!("Switching to file parsing mode");
+        log::info!("Switching to file parsing mode");
         let ja3 = Ja3::new(args.file.unwrap())
             .process_pcap()
             .unwrap();
@@ -130,7 +143,7 @@ async fn main() {
 
             if packet.is_fin || packet.is_rst || packet.is_syn || packet.is_handshake{
                 let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
-                info!("{}", log_json);
+                log::info!("{}", log_json);
                 let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
             }
         }
@@ -165,7 +178,7 @@ async fn main() {
 
             if packet.is_fin || packet.is_rst || packet.is_syn || packet.is_handshake{
                 let log_json = serde_json::to_string(&log_data).unwrap_or_else(|e| format!("Error serializing log data: {}", e));
-                info!("{}", log_json);
+                log::info!("{}", log_json);
                 let _ = monitor_tx.send(ja3_str).await; // pass to the monitoring impl
             }
         }

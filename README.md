@@ -1,7 +1,8 @@
 # Susspekt
 
-Sniffs TLS traffic on the network, and tracks JA3's making new connections. Aggregates http handshake rates based on `{ja3}` or `{ja3}-{remote_addr}`, and if thresholds are violated, posts the 
-suspect `{ja3}`/`{ja3}-{remote_addr}` to a rest endpoint as a simple json object:
+Sniffs TLS traffic on the network, and tracks JA3's making new connections. Aggregates http handshake rates based on 
+`{ja3}` or `{ja3}-{remote_addr}`, and if thresholds are violated, posts the suspect `{ja3}`/`{ja3}-{remote_addr}` to a 
+rest endpoint as a simple json object:
 
 ```json
 {
@@ -14,7 +15,7 @@ suspect `{ja3}`/`{ja3}-{remote_addr}` to a rest endpoint as a simple json object
 ## Usage
 
 ```bash
-Usage: susspekt <--interface <INTERFACE>|--file <FILE>|--threshold <THRESHOLD>|--window <WINDOW>|--alert-url <ALERT_URL>|--dry-run|--block-seconds <BLOCK_SECONDS>|--whitelist-networks <WHITELIST_NETWORKS>|--whitelist-ja3s <WHITELIST_JA3S>|--log-create-buckets <LOG_CREATE_BUCKETS>|--agg-ip>
+Usage: susspekt <--interface <INTERFACE>|--file <FILE>|--threshold <THRESHOLD>|--window <WINDOW>|--alert-url <ALERT_URL>|--dry-run|--block-seconds <BLOCK_SECONDS>|--whitelist-networks <WHITELIST_NETWORKS>|--whitelist-ja3s <WHITELIST_JA3S>|--log-create-buckets <LOG_CREATE_BUCKETS>|--agg-ip|--log-config <LOG_CONFIG>>
 
 Options:
   -i, --interface <INTERFACE>
@@ -39,10 +40,13 @@ Options:
           enable logging for new buckets [possible values: true, false]
       --agg-ip
           add IP to the ja3 hash as a key to aggregate on, e.g: {ja3}-{remote_addr}
+      --log-config <LOG_CONFIG>
+          Config file for log4rs [default: /etc/susspekt/log4rs.yaml]
   -h, --help
           Print help
   -V, --version
           Print version
+
 ```
 
 # Building
